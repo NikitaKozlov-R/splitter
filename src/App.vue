@@ -294,7 +294,6 @@ export default {
 }
 .tip-selector .tip-selector-grid .tip-selector-grid-card {
   display: flex;
-  width: 130px;
   height: 50px;
   justify-content: center;
   align-items: center;
