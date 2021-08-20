@@ -7,10 +7,6 @@
       </h1>
     </div>
 
-    <div class="hello">
-      <h id="test"></h>
-    </div>
-
     <div class="wpar-calc">
       <div class="wrap-calc-left-col">
         <div class="user-input">
