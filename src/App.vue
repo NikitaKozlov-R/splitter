@@ -12,7 +12,14 @@
         <div class="user-input">
           <label for="bill">Bill</label>
           <div class="user-input-svg">
-            <input id="bill" v-model="billSelect" type="number" placeholder="0" min="0" @input="isDesabled" />
+            <input
+              id="bill"
+              v-model="billSelect"
+              type="number"
+              placeholder="0"
+              min="0"
+              @keypress="validateInput('billSelect', 7, $event)"
+            />
             <svg xmlns="http://www.w3.org/2000/svg" width="11" height="17">
               <path
                 fill="#9EBBBD"
@@ -25,27 +32,33 @@
           <p>Select Tip %</p>
           <div class="tip-selector-grid">
             <div class="tip-selector-grid-card">
-              <input id="5" v-model="tipSelect" type="radio" name="tip" value="5" @click="isDesabled" />
+              <input id="5" v-model="tipSelect" type="radio" name="tip" value="5" />
               <label for="5">5%</label>
             </div>
             <div class="tip-selector-grid-card">
-              <input id="10" v-model="tipSelect" type="radio" name="tip" value="10" @click="isDesabled" />
+              <input id="10" v-model="tipSelect" type="radio" name="tip" value="10" />
               <label for="10">10%</label>
             </div>
             <div class="tip-selector-grid-card">
-              <input id="15" v-model="tipSelect" type="radio" name="tip" value="15" @click="isDesabled" />
+              <input id="15" v-model="tipSelect" type="radio" name="tip" value="15" />
               <label for="15">15%</label>
             </div>
             <div class="tip-selector-grid-card">
-              <input id="25" v-model="tipSelect" type="radio" name="tip" value="25" @click="isDesabled" />
+              <input id="25" v-model="tipSelect" type="radio" name="tip" value="25" />
               <label for="25">25%</label>
             </div>
             <div class="tip-selector-grid-card">
-              <input id="50" v-model="tipSelect" type="radio" name="tip" value="50" @click="isDesabled" />
+              <input id="50" v-model="tipSelect" type="radio" name="tip" value="50" />
               <label for="50">50%</label>
             </div>
             <div class="tip-selector-grid-card">
-              <input v-model="tipSelect" type="number" placeholder="Custom" @focus="resetTipRadio" />
+              <input
+                v-model="tipSelect"
+                type="number"
+                placeholder="Custom"
+                @keypress="validateInput('tipSelect', 3, $event)"
+                @focus="resetTipRadio"
+              />
             </div>
           </div>
         </div>
@@ -58,8 +71,7 @@
               type="number"
               placeholder="0"
               min="0"
-              pattern="[0-9]"
-              @input="isDesabled"
+              @keypress="validateInput('peopleSelect', 3, $event)"
             />
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="16">
               <path
@@ -87,7 +99,7 @@
             <p class="result-int">${{ resultTotalFunc }}</p>
           </div>
         </div>
-        <button id="resetBtn" class="disabled" @click="resetAll">
+        <button :class="{ disabled: isResetBtnDisabled }" @click="resetAll">
           RESET
         </button>
       </div>
@@ -98,29 +110,33 @@
 <script>
 export default {
   name: 'App',
+
   data() {
     return {
       billSelect: '',
-      tipSelect: null,
-      peopleSelect: ''
+      tipSelect: '',
+      peopleSelect: '',
+
+      isResetBtnDisabled: true
     }
   },
+
   computed: {
     resultTotalFunc() {
-      if (this.billSelect == null || this.billSelect == 0 || this.peopleSelect == null || this.peopleSelect == 0) {
+      if (!this.billSelect || !this.peopleSelect) {
         return '0.00'
-      } else {
-        let percent = (this.billSelect / 100) * this.tipSelect
-        return ((Number(this.billSelect) + Number(percent)) / Number(this.peopleSelect)).toFixed(2)
       }
+
+      const percent = (this.billSelect / 100) * this.tipSelect
+      return ((Number(this.billSelect) + Number(percent)) / Number(this.peopleSelect)).toFixed(2)
     },
     resultAmountFunc() {
-      if (this.billSelect == null || this.billSelect == 0 || this.peopleSelect == null || this.peopleSelect == 0) {
+      if (!this.billSelect || !this.peopleSelect) {
         return '0.00'
-      } else {
-        let percent = (this.billSelect / 100) * this.tipSelect
-        return (Number(percent) / Number(this.peopleSelect)).toFixed(2)
       }
+
+      const percent = (this.billSelect / 100) * this.tipSelect
+      return (Number(percent) / Number(this.peopleSelect)).toFixed(2)
     }
     // CustomTipMask() {
     //   if(this.tipSelect == 5 || 10 || 15 || 25 || 50) {
@@ -128,23 +144,38 @@ export default {
     //   }
     // }
   },
+
   methods: {
-    isDesabled() {
-      if (this.billSelect.length > 7 && this.billSelect != null) {
-        this.billSelect = this.billSelect.slice(0, 7)
-      } else if (this.peopleSelect.length > 3 && this.peopleSelect != null) {
-        this.peopleSelect = this.peopleSelect.slice(0, 3)
+    validateInput(variableName, maxLength, event) {
+      // "-" | "," | "e"
+      if ([101, 44, 46].includes(event.charCode)) {
+        event.preventDefault()
+        return
       }
-      document.querySelector('#resetBtn').classList.remove('disabled')
+
+      if (this[variableName].length > maxLength - 1) {
+        event.preventDefault()
+        return
+      }
+
+      if (this[variableName].startsWith('0')) {
+        // ^ - начало строки, 0+ - сколько угодно нулей до первого другого знака
+        this[variableName] = this[variableName].replace(/^0+/, '')
+      }
+
+      this.isResetBtnDisabled = false
     },
+
     resetAll() {
       this.billSelect = ''
-      this.tipSelect = null
+      this.tipSelect = ''
       this.peopleSelect = ''
-      document.querySelector('#resetBtn').classList.add('disabled')
+
+      this.isResetBtnDisabled = true
     },
+
     resetTipRadio() {
-      this.tipSelect = null
+      this.tipSelect = ''
     }
   }
 }
@@ -263,7 +294,6 @@ export default {
 }
 .tip-selector .tip-selector-grid .tip-selector-grid-card {
   display: flex;
-  width: 130px;
   height: 50px;
   justify-content: center;
   align-items: center;
