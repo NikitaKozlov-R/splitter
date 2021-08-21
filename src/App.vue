@@ -22,6 +22,7 @@
               placeholder="0"
               min="0"
               :class="{ empty: isEmptyBillSelect, active: isActiveBillSelect }"
+              @input="autoTipSelect"
               @focus="focusInput('focusIn', 'isActiveBillSelect')"
               @blur="focusInput('focusOut', 'isActiveBillSelect')"
               @keypress="validateInput('billSelect', 7, $event)"
@@ -83,6 +84,7 @@
               placeholder="0"
               min="0"
               :class="{ empty: isEmptyPeopleSelect, active: isActivePeopleSelect }"
+              @input="autoTipSelect"
               @focus="focusInput('focusIn', 'isActivePeopleSelect')"
               @blur="focusInput('focusOut', 'isActivePeopleSelect')"
               @keypress="validateInput('peopleSelect', 3, $event)"
@@ -164,12 +166,6 @@ export default {
     }
   },
 
-  watch: {
-    number: function(newValue) {
-      gsap.to(this.$data, { duration: 0.5, tweenedNumber: newValue })
-    }
-  },
-
   methods: {
     validateInput(variableName, maxLength, event) {
       // "-" | "," | "e"
@@ -215,6 +211,16 @@ export default {
 
       if (target === 'focusOut') {
         this[variableName] = false
+      }
+    },
+
+    autoTipSelect() {
+      if (this.billSelect.length >= 1 && this.peopleSelect.length >= 1 && this.tipSelect === '') {
+        this.tipSelect = '5'
+      }
+
+      if (this.billSelect === '' && this.peopleSelect === '') {
+        this.tipSelect = ''
       }
     },
 
