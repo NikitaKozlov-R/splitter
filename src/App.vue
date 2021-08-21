@@ -10,7 +10,10 @@
     <div class="wpar-calc">
       <div class="wrap-calc-left-col">
         <div class="user-input">
-          <label for="bill">Bill</label>
+          <div class="user-input-labels">
+            <label for="bill">Bill</label>
+            <label for="bill" class="empty-label" :class="{ empty: isEmptyBillSelect }">Can't be zero</label>
+          </div>
           <div class="user-input-svg">
             <input
               id="bill"
@@ -18,6 +21,9 @@
               type="number"
               placeholder="0"
               min="0"
+              :class="{ empty: isEmptyBillSelect, active: isActiveBillSelect }"
+              @focus="focusInput('focusIn', 'isActiveBillSelect')"
+              @blur="focusInput('focusOut', 'isActiveBillSelect')"
               @keypress="validateInput('billSelect', 7, $event)"
             />
             <svg xmlns="http://www.w3.org/2000/svg" width="11" height="17">
@@ -56,14 +62,19 @@
                 v-model="tipSelect"
                 type="number"
                 placeholder="Custom"
+                :class="{ active: isActiveCustomSelect }"
                 @keypress="validateInput('tipSelect', 3, $event)"
-                @focus="resetTipRadio"
+                @focus="resetTipRadio(), focusInput('focusIn', 'isActiveCustomSelect')"
+                @blur="focusInput('focusOut', 'isActiveCustomSelect')"
               />
             </div>
           </div>
         </div>
         <div class="user-input">
-          <label for="people">Number of People</label>
+          <div class="user-input-labels">
+            <label for="people">Number of People</label>
+            <label for="people" class="empty-label" :class="{ empty: isEmptyPeopleSelect }">Can't be zero</label>
+          </div>
           <div class="user-input-svg">
             <input
               id="people"
@@ -71,6 +82,9 @@
               type="number"
               placeholder="0"
               min="0"
+              :class="{ empty: isEmptyPeopleSelect, active: isActivePeopleSelect }"
+              @focus="focusInput('focusIn', 'isActivePeopleSelect')"
+              @blur="focusInput('focusOut', 'isActivePeopleSelect')"
               @keypress="validateInput('peopleSelect', 3, $event)"
             />
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="16">
@@ -117,7 +131,17 @@ export default {
       tipSelect: '',
       peopleSelect: '',
 
-      isResetBtnDisabled: true
+      // Состояние кнопки
+      isResetBtnDisabled: true,
+
+      // Состояние пустоты input
+      isEmptyBillSelect: false,
+      isEmptyPeopleSelect: false,
+
+      // Состояние активности input
+      isActiveBillSelect: false,
+      isActivePeopleSelect: false,
+      isActiveCustomSelect: false
     }
   },
 
@@ -138,11 +162,12 @@ export default {
       const percent = (this.billSelect / 100) * this.tipSelect
       return (Number(percent) / Number(this.peopleSelect)).toFixed(2)
     }
-    // CustomTipMask() {
-    //   if(this.tipSelect == 5 || 10 || 15 || 25 || 50) {
-    //     return "Custom"
-    //   }
-    // }
+  },
+
+  watch: {
+    number: function(newValue) {
+      gsap.to(this.$data, { duration: 0.5, tweenedNumber: newValue })
+    }
   },
 
   methods: {
@@ -163,13 +188,42 @@ export default {
         this[variableName] = this[variableName].replace(/^0+/, '')
       }
 
+      // ёбаный ислинт не даёт мне распрямить if в одну строчку
+      if (this.billSelect.length >= 0) {
+        this.isEmptyBillSelect = false
+      }
+
+      if (this.peopleSelect.length >= 0) {
+        this.isEmptyPeopleSelect = false
+      }
+
+      if (variableName === 'billSelect' && this.peopleSelect === '') {
+        this.isEmptyPeopleSelect = true
+      }
+
+      if (variableName === 'peopleSelect' && this.billSelect === '') {
+        this.isEmptyBillSelect = true
+      }
+
       this.isResetBtnDisabled = false
+    },
+
+    focusInput(target, variableName) {
+      if (target === 'focusIn') {
+        this[variableName] = true
+      }
+
+      if (target === 'focusOut') {
+        this[variableName] = false
+      }
     },
 
     resetAll() {
       this.billSelect = ''
       this.tipSelect = ''
       this.peopleSelect = ''
+      this.isEmptyBillSelect = false
+      this.isEmptyPeopleSelect = false
 
       this.isResetBtnDisabled = true
     },
@@ -193,6 +247,7 @@ export default {
   --color-primary: #00474b;
   --color-secondary: #f4f8fb;
   --color-active: #25c5ad;
+  --color-error: #dd552f;
   --border-radius-primary: 24px;
 }
 .wrapper {
@@ -248,6 +303,20 @@ export default {
   font-size: 1rem;
   color: var(--color-primary);
   margin-bottom: 10px;
+  transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.user-input-labels {
+  display: flex;
+  justify-content: space-between;
+}
+.wrap-calc-left-col .user-input label.empty-label {
+  font-size: 1rem;
+  color: var(--color-error);
+  margin-bottom: 10px;
+  display: none;
+}
+.wrap-calc-left-col .user-input label.empty-label.empty {
+  display: block;
 }
 .wrap-calc-left-col .user-input .user-input-svg {
   width: 100%;
@@ -268,9 +337,20 @@ export default {
   outline-style: none;
   border-radius: 4px;
   font-size: 1.4rem;
-  color: #9ebbbd;
+  color: var(--color-primary);
   font-weight: bold;
   padding-right: 20px;
+  transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.wrap-calc-left-col .user-input .user-input-svg input.empty {
+  -webkit-box-shadow: 0px 0px 0px 2px rgba(221, 85, 47, 1);
+  -moz-box-shadow: 0px 0px 0px 2px rgba(221, 85, 47, 1);
+  box-shadow: 0px 0px 0px 2px rgba(221, 85, 47, 1);
+}
+.wrap-calc-left-col .user-input .user-input-svg input.active {
+  -webkit-box-shadow: 0px 0px 0px 2px var(--color-active);
+  -moz-box-shadow: 0px 0px 0px 2px var(--color-active);
+  box-shadow: 0px 0px 0px 2px var(--color-active);
 }
 .wrap-calc-left-col .user-input .user-input-svg input::-webkit-input-placeholder {
   color: #9ebbbd;
@@ -312,6 +392,12 @@ export default {
   font-weight: bold;
   text-align: center;
   color: var(--color-primary);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.tip-selector .tip-selector-grid .tip-selector-grid-card input[type='number'].active {
+  -webkit-box-shadow: 0px 0px 0px 2px var(--color-active);
+  -moz-box-shadow: 0px 0px 0px 2px var(--color-active);
+  box-shadow: 0px 0px 0px 2px var(--color-active);
 }
 .tip-selector .tip-selector-grid .tip-selector-grid-card input[type='number']::-webkit-input-placeholder {
   color: var(--color-primary);
@@ -429,9 +515,16 @@ export default {
   .wrap-calc-left-col .user-input {
     margin: 0;
     margin-bottom: 16px;
+    height: auto;
   }
   .wrap-calc-left-col .user-input label {
     font-weight: bold;
+  }
+  .wrap-calc-left-col .user-input .user-input-svg {
+    padding: 3px;
+  }
+  .wrap-calc-left-col .user-input .user-input-svg input {
+    width: calc(100% - 30px);
   }
   .tip-selector {
     margin-bottom: 24px;
