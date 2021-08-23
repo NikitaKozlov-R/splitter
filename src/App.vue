@@ -486,9 +486,6 @@ export default {
 /* Стили для мобильной вёрстки */
 
 @media screen AND (max-width: 900px) {
-  * {
-    overflow: hidden;
-  }
   .main-title {
     top: 1vh;
   }
